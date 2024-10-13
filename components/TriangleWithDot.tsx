@@ -5,6 +5,7 @@ import Animated, { Easing, useSharedValue, withTiming, useAnimatedProps, withRep
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
+const isPortrait = height > width;
 
 // Create an Animated version of Svg.Circle
 const AnimatedCircle = Animated.createAnimatedComponent(SvgCircle);
@@ -76,22 +77,6 @@ const TriangleWithDot = () => {
     { x: (width / 2) + (triangleSideLength / 2), y: (height + triangleHeight) / 2 }, // Bottom-right vertex
   ];
 
-  // Use withRepeat to create a continuous loop
-  /*
-  useEffect(() => {
-
-    dotPosition.value = 0;
-
-    dotPosition.value = withRepeat(
-      withTiming(1, {
-        duration: 3 * speed, // Duration for a full traversal of the triangle
-        easing: Easing.linear,
-      }),
-      -1, // -1 means infinite repetition
-      false // Do not reverse the animation on repeat
-    );
-  }, [speed, dotPosition]); */
-
   useEffect(() => {
 
     dotPosition.value = 0;
@@ -114,6 +99,7 @@ const TriangleWithDot = () => {
 
     // Apply withRepeat to continuously loop the sequence
     dotPosition.value = withRepeat(animationSequence, -1, false); // Repeat indefinitely, no reverse
+
   }, [speed1, speed2, speed3, dotPosition]);
 
 
@@ -145,45 +131,49 @@ const TriangleWithDot = () => {
   return (
     <View style={styles.container}>
 
+      <View style={styles.triangleContainer}>
+        <Svg height={height} width={width} viewBox={`0 0 ${width} ${height}`}>
+
+          <Polygon
+            points={`${vertices[0].x},${vertices[0].y} ${vertices[1].x},${vertices[1].y} ${vertices[2].x},${vertices[2].y}`}
+            fill="none"
+            stroke="black"
+            strokeWidth="2"
+          />
+
+          <AnimatedCircle
+            animatedProps={animatedDotProps}
+            r="10"
+            fill="red"
+          />
+
+        </Svg>
+      </View>  
+
       <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
               keyboardType="numeric"
               placeholder="Speed 1"
               value={speed1.toString()}
-              onChangeText={(text) => setSpeed1(Number(text))} // Set speed for side 1
+              onChangeText={(text) => setSpeed1(Number(text) || 1000)} // Set speed for side 1
             />
             <TextInput
               style={styles.input}
               keyboardType="numeric"
               placeholder="Speed 2"
               value={speed2.toString()}
-              onChangeText={(text) => setSpeed2(Number(text))} // Set speed for side 2
+              onChangeText={(text) => setSpeed2(Number(text) || 1000)} // Set speed for side 2
             />
             <TextInput
               style={styles.input}
               keyboardType="numeric"
               placeholder="Speed 3"
               value={speed3.toString()}
-              onChangeText={(text) => setSpeed3(Number(text))} // Set speed for side 3
+              onChangeText={(text) => setSpeed3(Number(text) || 1000)} // Set speed for side 3
             />
       </View>           
-
-      <Svg height={height} width={width} viewBox={`0 0 ${width} ${height}`}>
-
-        <Polygon
-          points={`${vertices[0].x},${vertices[0].y} ${vertices[1].x},${vertices[1].y} ${vertices[2].x},${vertices[2].y}`}
-          fill="none"
-          stroke="black"
-          strokeWidth="2"
-        />
-
-        <AnimatedCircle
-          animatedProps={animatedDotProps}
-          r="10"
-          fill="red"
-        />
-      </Svg>
+      
     </View>
   );
 };
@@ -191,24 +181,40 @@ const TriangleWithDot = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    //justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'column', // Vertical layout
   },
   inputRow: {
+    //flex: 0.1, // percentage of vertical space
+    flex: isPortrait ? 0.2 : 0.1,
     flexDirection: 'row', // Horizontally layout the inputs
     justifyContent: 'space-between', // Space between inputs
     alignItems: 'center',
     width: '90%',
-    marginTop: 20, // Add some space from the top
+    //marginTop: 10, // Add some space from the top
+    marginBottom: 80,
   },
   input: {
-    width: '30%', // Adjust width for each input to fit side by side
+    //width: '30%', // Adjust width for each input to fit side by side
+    flex: 1.0, // each input element to take equal space on the row
     height: 40,
+    marginHorizontal: 5, // margin between inputs
     borderColor: 'gray',
     borderWidth: 1,
     borderRadius: 10,
     padding: 10,
     backgroundColor: 'white',
+    textAlign: 'center',
+  },
+  triangleContainer: {
+    //flex: 0.9, // % of vertical space
+    flex: isPortrait ? 0.8 : 0.9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // Ensure the triangle fits and scales correctly
+    width: '100%',
+    height: '100%',
   },
 });
 
